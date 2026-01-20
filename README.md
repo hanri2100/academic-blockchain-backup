@@ -7,12 +7,13 @@ Proyek ini adalah implementasi sistem penerbitan dan verifikasi ijazah digital m
 - [Arsitektur Teknologi](#-arsitektur-teknologi)
 - [Prasyarat](#-prasyarat)
 - [Instalasi & Konfigurasi](#-instalasi--konfigurasi)
-  - [1. Setup Network & Channel](#1-setup-network--channel)
+  - [1. Setup Network & Channel](#Fase-1:-Setup-Network-&-Channel)
+  - [2. Persiapan Deploy Chaincode](#2-deploy-chaincode)
   - [2. Deploy Chaincode](#2-deploy-chaincode)
   - [3. Setup IPFS](#3-setup-ipfs)
   - [4. Setup Backend](#4-setup-backend)
   - [5. Setup Frontend](#5-setup-frontend)
-- [Mekanisme Penggunaan](#-mekanisme-penggunaan)
+- [Mekanisme Penggunaan](#-Pengujian-Alur-Akhir (End-to-End Test))
 - [Troubleshooting](#-troubleshooting)
 
 ---

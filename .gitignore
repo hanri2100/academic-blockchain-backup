@@ -1,0 +1,45 @@
+# ===========================
+# 1. GLOBAL (Berlaku untuk semua folder)
+# ===========================
+node_modules/
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+.DS_Store
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ===========================
+# 2. HYPERLEDGER FABRIC (SANGAT PENTING!)
+# ===========================
+# Jangan upload identitas kriptografi (Private Keys)
+fabric-samples/organizations/peerOrganizations/
+fabric-samples/organizations/ordererOrganizations/
+fabric-samples/test-network/
+fabric-samples/bin/
+fabric-samples/config/
+# Jangan upload blok genesis atau artefak channel
+fabric-samples/channel-artifacts/
+fabric-samples/system-genesis-block/
+fabric-samples/*.tar.gz
+
+# Jangan upload kubo dan data
+kubo/
+data/
+
+# ===========================
+# 3. FRONTEND (React/Vite/Next)
+# ===========================
+frontend/dist/
+frontend/build/
+frontend/.next/
+frontend/coverage/
+
+# ===========================
+# 4. BACKEND & CHAINCODE (TypeScript Build)
+# ===========================
+backend/dist/
+chaincode/dist/

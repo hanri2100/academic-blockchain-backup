@@ -105,7 +105,7 @@ tar cfz academic-cc.tar.gz metadata.json code.tar.gz
 cd ~/academic-blockchain
 mkdir backend && cd backend
 pnpm init
-pnpm add express bcrypt form-data jsonwebtoken dotenv zod fabric-network fabric-common fabric-ca-client @grpc/grpc-js @hyperledger/fabric-gateway
+pnpm add express bcrypt form-data multer axios bcrypt jsonwebtoken dotenv zod fabric-network fabric-common fabric-ca-client @grpc/grpc-js @hyperledger/fabric-gateway
 pnpm add -D typescript ts-node @types/express @types/jsonwebtoken @types/node @types/bcrypt @types/multer
 pnpm exec tsc --init
 ```
@@ -118,17 +118,6 @@ cd frontend
 pnpm install
 pnpm add axios lucide-react jwt-decode
 ```
-
-#### Sinkronisasi
-
-Generate token untuk backend:
-
-```bash
-cd academic-blockchain/backend/
-pnpm generate-token
-```
-
-Setelah itu update .env di direktori frontend. Salin token yang muncul tadi, lalu paste ke file frontend/.env di variabel VITE_ADMIN_TOKEN.
 
 Setelah itu buka /etc/hosts dengan menggunakan sudo nano dan tambahkan baris berikut ini:
 
@@ -148,8 +137,8 @@ Masuk ke direktori jaringan Fabric (misalnya `test-network`) dan jalankan jaring
 cd fabric-samples/test-network
 # Matikan network lama (jika ada) untuk membersihkan container
 ./network.sh down
-# Nyalakan network, buat channel 'mychannel', dan aktifkan Certificate Authority (CA)
-./network.sh up createChannel -c mychannel -s couchdb -ca
+# Nyalakan network, buat channel 'academic-network', dan aktifkan Certificate Authority (CA)
+./network.sh up createChannel -c academic-network -s couchdb -ca
 ```
 
 ### Fase 2: Build & Persiapan Chaincode (CCaaS)
@@ -249,36 +238,44 @@ pnpm dev
 
 #### 2. Pengujian Alur Akhir (End-to-End Test)
 
-Sekarang, silakan buka browser Anda dan ikuti urutan ini untuk memastikan seluruh sistem (Frontend, Backend, IPFS, Blockchain) bekerja dengan harmonis:
+Ikuti urutan pengujian berikut untuk memastikan seluruh integrasi (Frontend, Backend, IPFS, dan Blockchain) berfungsi dengan sempurna:
 
-##### Langkah A: Penerbitan (Admin Universitas)
+##### Langkah A: Login & Penerbitan (Admin Universitas)
 
-1.  **Akses Web**
-    Buka `http://localhost:5173` di browser.
-2.  **Menu Admin**
-    Pilih tab **Universitas**.
-3.  **Upload Dokumen**
-    Klik **Pilih File** dan masukkan file PDF apa saja (sebagai contoh ijazah).
-    - _Cek:_ ✅ Jika muncul teks hijau berisi Hash (seperti `Qm...`), maka **IPFS Berhasil**.
-4.  **Input Data**
-    Isi formulir dengan data dummy berikut:
-    - **ID:** `CERT12345`
-    - **Nama:** `Hanri`
-    - **NIM:** `123456`
-    - **Gelar:** `Sarjana Komputer`
-5.  **Eksekusi**
-    Klik tombol **Daftarkan ke Blockchain**.
-    - _Cek:_ ✅ Jika muncul notifikasi **"SUKSES: Ijazah telah diamankan"**, maka **Blockchain & Backend Berhasil**.
+1.  **Akses Web**: Buka `http://localhost:5173` di browser Anda.
+2.  **Otorisasi**: Pilih tab **Portal Kampus** dan masukkan kredensial Admin (contoh: `admin_kampus` / password sesuai `.env`).
+    - *Cek*: ✅ Jika berhasil masuk ke Dashboard Admin, sistem **Autentikasi JWT Berhasil**.
+3.  **Unggah Dokumen**: Pada menu **Terbitkan**, klik tombol **Pilih File** dan masukkan file PDF ijazah asli.
+    - *Cek*: ✅ Jika muncul informasi ukuran file dan teks hijau berisi **IPFS Hash (CID)**, maka koneksi ke **Node IPFS Lokal Berhasil**.
+4.  **Input Data Ledger**: Isi formulir data ijazah:
+    - **ID Ijazah**: `CERT12345`
+    - **NIM**: `123456`
+    - **Nama Mahasiswa**: `ANON`
+    - **Program Studi**: `Sarjana Kompute`
+5.  **Eksekusi Blockchain**: Klik tombol **Daftarkan ke Blockchain**.
+    - *Cek*: ✅ Jika muncul notifikasi **"BERHASIL: Ijazah telah resmi terdaftar"**, maka transaksi pada **Smart Contract (CCaaS) Berhasil**.
 
-##### Langkah B: Verifikasi (Umum)
+##### Langkah B: Verifikasi (Umum/Publik)
 
-1.  **Menu Publik**
-    Pindah ke tab **Verifikasi**.
-2.  **Cari Data**
-    Masukkan ID yang baru saja dibuat: `CERT12345`.
-3.  **Validasi**
-    Klik tombol **Periksa**.
-    - _Cek:_ ✅ Data **Nama**, **NIM**, dan **Gelar** harus muncul secara instan di layar.
-4.  **Akses Fisik**
-    Klik link **IPFS Hash Arsitektur**.
-    - _Cek:_ ✅ Browser harus membuka file PDF yang Anda unggah tadi melalui gateway IPFS lokal (`localhost:8080`).
+Pindah ke tab **Verifikasi** (dapat dilakukan tanpa login). Anda dapat menguji dua metode validasi:
+
+**Metode 1: Pencarian via ID (Lookup ID)**
+1.  Pilih opsi **"Cari ID / Nama"**.
+2.  Masukkan ID: `CERT12345` lalu klik **Mulai Verifikasi**.
+    - *Cek*: ✅ Data Nama, NIM, dan Gelar akan ditarik langsung dari Blockchain. Pastikan muncul kartu sertifikat berwarna hijau bertuliskan **"Verified Certificate"**.
+
+**Metode 2: Validasi Integritas File (Pencocokan Hash)**
+1.  Pilih opsi **"Unggah File PDF"**.
+2.  Masukkan ID Ijazah: `CERT12345`.
+3.  Unggah file PDF yang **sama** dengan yang didaftarkan sebelumnya.
+4.  Klik **Mulai Verifikasi**.
+    - *Cek*: ✅ Sistem akan mencocokkan hash file fisik dengan data di Blockchain. Jika asli, muncul laporan: **"VERIFIKASI BERHASIL: File identik dengan data Blockchain"**.
+5.  **Uji Pemalsuan (Opsional)**: Coba unggah file PDF yang berbeda atau file yang sudah diedit isinya dengan ID yang sama.
+    - *Cek*: ❌ Sistem akan mendeteksi perbedaan hash dan menampilkan status: **"VERIFIKASI GAGAL: File telah dimodifikasi"**.
+
+##### Langkah C: Akses Audit & Dokumen Fisik
+
+1.  **Audit Ledger**: Lihat bagian bawah hasil verifikasi pada **"Riwayat Ledger Blockchain"**.
+    - *Cek*: ✅ Pastikan detail **Transaction ID** dan stempel waktu (Timestamp) muncul sebagai bukti audit.
+2.  **Lihat Dokumen Fisik**: Klik pada link **"Lihat Dokumen Asli"** di bawah Hash IPFS.
+    - *Cek*: ✅ Browser harus membuka file PDF ijazah secara instan melalui gateway lokal `http://localhost:8080/ipfs/...`.
